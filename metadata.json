@@ -1,0 +1,9 @@
+{
+  "name": "Remix: AgriZen",
+  "description": "An AI-powered agricultural assistant for crop recommendation, pest detection and pesticide recommendation not neutrilizers , and farming tips. also it mainly for mobile application ",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ],
+  "majorCapabilities": []
+}

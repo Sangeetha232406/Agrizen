@@ -1,0 +1,103 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // 0. Global Safety Net
+    match /{document=**} {
+      allow read, write: if false;
+    }
+
+    // --- Helper Functions ---
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isVerified() {
+      return isSignedIn() && request.auth.token.email_verified == true;
+    }
+
+    function isOwner(userId) {
+      return isSignedIn() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isSignedIn() && (
+        request.auth.token.email == 'sangeetha25242@gmail.com' ||
+        exists(/databases/$(database)/documents/admins/$(request.auth.uid))
+      );
+    }
+
+    function isValidId(id) {
+      return id is string && id.size() <= 128 && id.matches('^[a-zA-Z0-9_\\-]+$');
+    }
+
+    function incoming() {
+      return request.resource.data;
+    }
+
+    function existing() {
+      return resource.data;
+    }
+
+    // --- Validation Blueprints ---
+
+    function isValidUser(data) {
+      return data.uid == request.auth.uid
+        && data.email is string && data.email.size() <= 256
+        && (data.displayName == null || (data.displayName is string && data.displayName.size() <= 256));
+    }
+
+    function isValidRecommendation(data) {
+      return data.userId == request.auth.uid
+        && data.recommendedCrop is string && data.recommendedCrop.size() <= 200
+        && data.inputs is map
+        && data.inputs.n is number && data.inputs.p is number && data.inputs.k is number
+        && data.inputs.ph is number && data.inputs.temperature is number
+        && data.inputs.humidity is number && data.inputs.rainfall is number
+        && data.tips is list && data.tips.size() <= 10
+        && data.timestamp == request.time;
+    }
+
+    function isValidDetection(data) {
+      return data.userId == request.auth.uid
+        && data.pestName is string && data.pestName.size() <= 200
+        && data.imageUrl is string && data.imageUrl.size() <= 2000000 // Base64 can be large, but let's cap it
+        && data.confidence is number
+        && data.pesticides is list && data.pesticides.size() <= 10
+        && data.details is string && data.details.size() <= 5000
+        && data.timestamp == request.time;
+    }
+
+    // --- Collection Routes ---
+
+    match /users/{userId} {
+      allow get: if isOwner(userId) || isAdmin();
+      allow create: if isOwner(userId) && isValidUser(incoming())
+        && incoming().keys().hasAll(['uid', 'email', 'createdAt'])
+        && incoming().keys().size() <= 5;
+      allow update: if (isOwner(userId) || isAdmin()) && isValidUser(incoming())
+        && incoming().diff(existing()).affectedKeys().hasOnly(['displayName', 'email']);
+    }
+
+    match /recommendations/{recId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow create: if isVerified() && isValidRecommendation(incoming())
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow delete: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+    }
+
+    match /detections/{detId} {
+      allow list: if isSignedIn() && resource.data.userId == request.auth.uid;
+      allow get: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+      allow create: if isVerified() && isValidDetection(incoming())
+        && exists(/databases/$(database)/documents/users/$(request.auth.uid));
+      allow delete: if (isSignedIn() && resource.data.userId == request.auth.uid) || isAdmin();
+    }
+    
+    // Admin explicit collection (readonly for users)
+    match /admins/{adminId} {
+      allow read: if isSignedIn();
+      allow write: if false;
+    }
+  }
+}

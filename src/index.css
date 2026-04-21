@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Libre Baskerville", serif;
+  --font-mono: "JetBrains Mono", monospace;
+  
+  --color-accent-green: #2D4A22;
+  --color-forest: #1A2F14;
+  --color-green-soft: #E8EBE0;
+  --color-clay: #A65D21;
+  --color-terracotta: #BC6C25;
+  --color-sand: #E9DCC9;
+  --color-surface: #F8F7F2;
+  
+  --shadow-card: 0 4px 32px rgba(45, 74, 34, 0.04);
+  --shadow-float: 0 20px 48px rgba(0, 0, 0, 0.06);
+}
+
+@layer base {
+  body {
+    @apply bg-surface text-forest/90 antialiased selection:bg-accent-green selection:text-white;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .custom-scrollbar::-webkit-scrollbar {
+    width: 3px;
+  }
+  .custom-scrollbar::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-accent-green/10 rounded-full;
+  }
+  .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-accent-green/30;
+  }
+
+  .glass-card {
+    @apply bg-white/70 backdrop-blur-md border border-white/40;
+  }
+
+  .organic-glow {
+    box-shadow: 0 0 40px rgba(45, 74, 34, 0.05);
+  }
+
+  .bento-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+  }
+}

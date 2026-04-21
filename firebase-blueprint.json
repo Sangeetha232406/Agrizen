@@ -1,0 +1,70 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User account information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string" },
+        "email": { "type": "string" },
+        "displayName": { "type": "string" },
+        "createdAt": { "type": "string", "format": "date-time" }
+      },
+      "required": ["uid", "email"]
+    },
+    "CropRecommendation": {
+      "title": "Crop Recommendation",
+      "description": "Record of a crop recommendation query and result",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "inputs": {
+          "type": "object",
+          "properties": {
+            "n": { "type": "number" },
+            "p": { "type": "number" },
+            "k": { "type": "number" },
+            "temperature": { "type": "number" },
+            "humidity": { "type": "number" },
+            "ph": { "type": "number" },
+            "rainfall": { "type": "number" },
+            "location": { "type": "string" }
+          }
+        },
+        "recommendedCrop": { "type": "string" },
+        "tips": { "type": "array", "items": { "type": "string" } },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "inputs", "recommendedCrop", "timestamp"]
+    },
+    "PestDetection": {
+      "title": "Pest Detection",
+      "description": "Record of a pest detection query and result",
+      "type": "object",
+      "properties": {
+        "userId": { "type": "string" },
+        "imageUrl": { "type": "string" },
+        "pestName": { "type": "string" },
+        "confidence": { "type": "number" },
+        "pesticides": { "type": "array", "items": { "type": "string" } },
+        "details": { "type": "string" },
+        "timestamp": { "type": "string", "format": "date-time" }
+      },
+      "required": ["userId", "pestName", "timestamp"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profile documents"
+    },
+    "/recommendations/{recId}": {
+      "schema": "CropRecommendation",
+      "description": "History of crop recommendations"
+    },
+    "/detections/{detId}": {
+      "schema": "PestDetection",
+      "description": "History of pest detections"
+    }
+  }
+}
